@@ -1,46 +1,53 @@
-import streamlit as st
-from support import retriever,model,tokenizer
-import traceback
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from support import retriever, model, tokenizer
 import torch
-import ctransformers
 
+app = FastAPI()
 
-st.title("Diamante chatbot")
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# Serve static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
+class Question(BaseModel):
+    text: str
 
-with st.form("user input"):
-    question=st.text_input("Insert your question",max_chars=200)
-    button=st.form_submit_button("Generate answer")
+@app.post("/ask")
+async def ask_question(question: Question):
+    try:
+        # Retrieve relevant documents
+        docs = retriever.invoke(question.text)
+        context = " ".join([doc.page_content for doc in docs])
 
-if button and question:
-    with st.spinner("Loading...."):
-        try:
-            docs = retriever.invoke(question)
-            content =""
-            for i in docs:
-                 content+=i.page_content
-            content = content.replace("\n","").replace("\xa0","")
-            input_text = f"""
-            Based on the below data,
-            answer this question {question}.
-            and the data is {content}"""
-            inputs = tokenizer(input_text, max_length=1024, return_tensors="pt", truncation=True)
-                 
-            # Get the input IDs and attention mask
+        # Prepare input for the model
+        input_text = f"Context: {context}\n\nQuestion: {question.text}\n\nAnswer:"
+        inputs = tokenizer(input_text, max_length=1024, return_tensors="pt", truncation=True)
+
+        # Generate response
+        with torch.no_grad():
             summary_ids = model.generate(inputs["input_ids"], max_length=150, min_length=40, num_beams=4, early_stopping=True)
-            summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+        
+        response = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
 
+        return JSONResponse(content={"response": response})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/")
+async def read_root():
+    return {"message": "Welcome to the Diamante Chatbot API"}
 
-        except Exception as e:
-                traceback.print_exception(type(e), e, e.__traceback__)
-                st.error("Error")
-        else:
-             if summary is not None:
-                   st.text_area(label="Answer", value=summary)
-
-
-
-elif button and not question:
-     st.write("Please enter the question and then submit")
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
