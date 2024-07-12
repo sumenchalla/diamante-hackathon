@@ -1,9 +1,9 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_chroma import Chroma
 from langchain_text_splitters import CharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-
+#from langchain_huggingface import HuggingFaceEmbeddings updated as version changed
 
 #Loading the data
 loader = PyPDFLoader("Data/diamante-net-whitepaper.pdf")
