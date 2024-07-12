@@ -2,6 +2,7 @@ import streamlit as st
 from support import retriever,model,tokenizer
 import traceback
 import torch
+import ctransformers
 
 
 st.title("Diamante chatbot")
