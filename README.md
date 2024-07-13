@@ -76,8 +76,8 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 If you have any questions or need further assistance, feel free to contact us:
 
 - **Project Maintainers**: Challa Sumen , Devendra Royal
-- **GitHub**: [yourusername](https://github.com/sumenchalla)
-- **GitHub**: [yourusername](https://github.com/0xdev02)
+- **GitHub**: [Challa Sumen](https://github.com/sumenchalla)
+- **GitHub**: [Devendra Royal](https://github.com/0xdev02)
 
 We hope you find this project useful and look forward to your contributions!
 
