@@ -2,5 +2,6 @@ langchain
 langchain-chroma
 langchain_community
 ctransformers
+langchain_huggingface
 torch
 streamlit
